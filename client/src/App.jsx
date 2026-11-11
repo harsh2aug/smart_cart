@@ -6,7 +6,7 @@ function App() {
         <p className="mt-2 text-gray-600">Scan. Order. Collect.</p>
       </div>
     </main>
-  )
+  );
 }
 
-export default App
+export default App;

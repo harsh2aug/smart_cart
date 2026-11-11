@@ -1,0 +1,11 @@
+# Installed or generated files: never format these
+node_modules
+dist
+generated
+package-lock.json
+server/prisma/migrations
+
+# Local-only files and folders
+project-road-map.txt
+server/.*
+server/skills-lock.json

@@ -2,8 +2,10 @@
 // Docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider            = "prisma-client"
+  output              = "../generated/prisma"
+  moduleFormat        = "esm" // generated code uses import/export
+  importFileExtension = "ts" // lets Node run the generated .ts files directly
 }
 
 // The database URL comes from DATABASE_URL in .env (see prisma7.config.ts)

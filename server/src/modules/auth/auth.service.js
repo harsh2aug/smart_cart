@@ -4,7 +4,9 @@ import { env } from '../../config/env.js';
 import prisma from '../../config/prisma.js';
 import { AppError } from '../../utils/AppError.js';
 import { TOKEN_DAYS } from '../../utils/authCookie.js';
+import { sendEmail } from '../../utils/email.js';
 import { toSlug } from '../../utils/slug.js';
+import { createOtp, OTP_MINUTES, useOtp } from './otp.service.js';
 
 // Remove the password hash before a merchant is sent to the browser
 function withoutPassword(merchant) {
@@ -41,6 +43,14 @@ export async function registerMerchant({ businessName, ownerName, phone, email, 
   const merchant = await prisma.merchant.create({
     data: { businessName, ownerName, phone, email, passwordHash, slug },
   });
+
+  // Registration should not fail just because the email could not be sent.
+  // The merchant can press "Resend code" later.
+  try {
+    await sendVerificationCode(merchant);
+  } catch (error) {
+    console.error('Could not send verification email:', error.message);
+  }
   return withoutPassword(merchant);
 }
 
@@ -56,6 +66,48 @@ export async function loginMerchant({ phone, password }) {
     throw new AppError(403, 'Your account is suspended. Please contact support.');
   }
   return withoutPassword(merchant);
+}
+
+// Makes a new code and emails it to the merchant
+async function sendVerificationCode(merchant) {
+  const code = await createOtp(merchant.id, 'VERIFY_EMAIL');
+  await sendEmail({
+    to: merchant.email,
+    subject: `${code} is your SmartCart verification code`,
+    text:
+      `Hi ${merchant.ownerName},\n\n` +
+      `Your SmartCart verification code is ${code}.\n` +
+      `It works for ${OTP_MINUTES} minutes.\n\n` +
+      `If you did not create a SmartCart account, you can ignore this email.`,
+  });
+}
+
+// The id comes from the login cookie (see requireAuth)
+async function findMerchantById(merchantId) {
+  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId } });
+  if (!merchant) {
+    throw new AppError(401, 'Please log in first');
+  }
+  if (merchant.isEmailVerified) {
+    throw new AppError(400, 'Your email is already verified');
+  }
+  return merchant;
+}
+
+export async function resendVerificationCode(merchantId) {
+  const merchant = await findMerchantById(merchantId);
+  await sendVerificationCode(merchant);
+}
+
+export async function verifyEmail(merchantId, otp) {
+  const merchant = await findMerchantById(merchantId);
+  await useOtp(merchant.id, 'VERIFY_EMAIL', otp); // throws if the code is wrong
+
+  const updated = await prisma.merchant.update({
+    where: { id: merchant.id },
+    data: { isEmailVerified: true },
+  });
+  return withoutPassword(updated);
 }
 
 // The token only stores the merchant id ("sub" = subject = who this token is for)

@@ -26,3 +26,10 @@ export const loginSchema = z.object({
   phone,
   password: z.string().min(1, 'Password is required'),
 });
+
+export const verifyEmailSchema = z.object({
+  otp: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Enter the 6-digit code'),
+});

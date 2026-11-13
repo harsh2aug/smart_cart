@@ -49,5 +49,16 @@ Content-Type: application/json
   "password": "wrongpass"
 }
 
+### Verify email (needs the login cookie; the code is printed in the server terminal)
+POST {{baseUrl}}/auth/verify-email
+Content-Type: application/json
+
+{
+  "otp": "123456"
+}
+
+### Ask for a new verification code (needs the login cookie)
+POST {{baseUrl}}/auth/resend-verification
+
 ### Logout
 POST {{baseUrl}}/auth/logout

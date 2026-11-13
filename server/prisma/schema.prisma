@@ -15,25 +15,50 @@ datasource db {
 
 // A food-cart owner who uses SmartCart
 model Merchant {
-  id           String   @id @default(uuid()) @db.Uuid
-  businessName String   @db.VarChar(100)
-  ownerName    String   @db.VarChar(100)
-  phone        String   @unique @db.VarChar(15) // used to log in
-  email        String   @unique @db.VarChar(255) // required: OTPs and password reset go here
-  passwordHash String // never store the real password
-  slug         String   @unique @db.VarChar(120) // public menu link, e.g. /m/raju-chaat
-  description  String?
-  address      String?  @db.VarChar(255) // where the cart usually stands, e.g. "Opp. City Mall"
-  city         String?  @db.VarChar(100)
-  isOpen       Boolean  @default(false) // cart open/closed right now
-  isActive     Boolean  @default(true) // false = account suspended
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(uuid()) @db.Uuid
+  businessName    String   @db.VarChar(100)
+  ownerName       String   @db.VarChar(100)
+  phone           String   @unique @db.VarChar(15) // used to log in
+  email           String   @unique @db.VarChar(255) // required: OTPs and password reset go here
+  isEmailVerified Boolean  @default(false) // true after the merchant enters the email OTP
+  passwordHash    String // never store the real password
+  slug            String   @unique @db.VarChar(120) // public menu link, e.g. /m/raju-chaat
+  description     String?
+  address         String?  @db.VarChar(255) // where the cart usually stands, e.g. "Opp. City Mall"
+  city            String?  @db.VarChar(100)
+  isOpen          Boolean  @default(false) // cart open/closed right now
+  isActive        Boolean  @default(true) // false = account suspended
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   categories Category[]
   products   Product[]
+  emailOtps  EmailOtp[]
 
   @@map("merchants")
+}
+
+// Why an OTP was sent
+enum OtpPurpose {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+// A one-time code sent by email. Only one per merchant per purpose:
+// asking for a new code replaces the old one.
+model EmailOtp {
+  id         String     @id @default(uuid()) @db.Uuid
+  merchantId String     @db.Uuid
+  purpose    OtpPurpose
+  codeHash   String // hashed like a password, never the real code
+  expiresAt  DateTime
+  attempts   Int        @default(0) // wrong tries so far
+  sentAt     DateTime   @default(now()) // used to stop "resend" spam
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, purpose])
+  @@map("email_otps")
 }
 
 // A menu section, e.g. "Chaat" or "Drinks"

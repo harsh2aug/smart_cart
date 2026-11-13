@@ -19,10 +19,12 @@ model Merchant {
   businessName String   @db.VarChar(100)
   ownerName    String   @db.VarChar(100)
   phone        String   @unique @db.VarChar(15) // used to log in
-  email        String?  @unique @db.VarChar(255) // optional
+  email        String   @unique @db.VarChar(255) // required: OTPs and password reset go here
   passwordHash String // never store the real password
   slug         String   @unique @db.VarChar(120) // public menu link, e.g. /m/raju-chaat
   description  String?
+  address      String?  @db.VarChar(255) // where the cart usually stands, e.g. "Opp. City Mall"
+  city         String?  @db.VarChar(100)
   isOpen       Boolean  @default(false) // cart open/closed right now
   isActive     Boolean  @default(true) // false = account suspended
   createdAt    DateTime @default(now())

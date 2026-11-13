@@ -1,0 +1,53 @@
+### SmartCart API test requests
+### Install the "REST Client" extension in VS Code, then click "Send Request" above each request.
+### Start the server first: npm run dev
+
+@baseUrl = http://localhost:5000/api/v1
+
+### Health check
+GET http://localhost:5000/api/health
+
+### Register a merchant
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "businessName": "Raju Chaat Corner",
+  "ownerName": "Raju Kumar",
+  "phone": "9876543210",
+  "email": "raju@example.com",
+  "password": "secret123"
+}
+
+### Register with invalid data (expect 400)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "businessName": "R",
+  "ownerName": "Raju Kumar",
+  "phone": "12345",
+  "email": "not-an-email",
+  "password": "short"
+}
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "phone": "9876543210",
+  "password": "secret123"
+}
+
+### Login with wrong password (expect 401)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "phone": "9876543210",
+  "password": "wrongpass"
+}
+
+### Logout
+POST {{baseUrl}}/auth/logout

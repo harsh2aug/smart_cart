@@ -83,24 +83,41 @@ async function sendVerificationCode(merchant) {
 }
 
 // The id comes from the login cookie (see requireAuth)
-async function findMerchantById(merchantId) {
+async function findLoggedInMerchant(merchantId) {
   const merchant = await prisma.merchant.findUnique({ where: { id: merchantId } });
-  if (!merchant) {
+  if (!merchant || !merchant.isActive) {
     throw new AppError(401, 'Please log in first');
   }
+  return merchant;
+}
+
+async function findUnverifiedMerchant(merchantId) {
+  const merchant = await findLoggedInMerchant(merchantId);
   if (merchant.isEmailVerified) {
     throw new AppError(400, 'Your email is already verified');
   }
   return merchant;
 }
 
+// For GET /auth/me: "who is logged in?" Returns null when nobody is.
+export async function getCurrentMerchant(merchantId) {
+  if (!merchantId) {
+    return null;
+  }
+  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId } });
+  if (!merchant || !merchant.isActive) {
+    return null; // account deleted or suspended
+  }
+  return withoutPassword(merchant);
+}
+
 export async function resendVerificationCode(merchantId) {
-  const merchant = await findMerchantById(merchantId);
+  const merchant = await findUnverifiedMerchant(merchantId);
   await sendVerificationCode(merchant);
 }
 
 export async function verifyEmail(merchantId, otp) {
-  const merchant = await findMerchantById(merchantId);
+  const merchant = await findUnverifiedMerchant(merchantId);
   await useOtp(merchant.id, 'VERIFY_EMAIL', otp); // throws if the code is wrong
 
   const updated = await prisma.merchant.update({
@@ -108,6 +125,44 @@ export async function verifyEmail(merchantId, otp) {
     data: { isEmailVerified: true },
   });
   return withoutPassword(updated);
+}
+
+// Forgot password, step 1: email a reset code.
+// We never say "this email is not registered", so nobody can use this
+// form to check who has a SmartCart account.
+export async function sendPasswordResetCode(email) {
+  const merchant = await prisma.merchant.findUnique({ where: { email } });
+  if (!merchant || !merchant.isActive) {
+    return; // the controller sends the same reply either way
+  }
+
+  const code = await createOtp(merchant.id, 'RESET_PASSWORD');
+  await sendEmail({
+    to: merchant.email,
+    subject: `${code} is your SmartCart password reset code`,
+    text:
+      `Hi ${merchant.ownerName},\n\n` +
+      `Your code to reset your SmartCart password is ${code}.\n` +
+      `It works for ${OTP_MINUTES} minutes.\n\n` +
+      `If you did not ask for this, ignore this email. Your password will not change.`,
+  });
+}
+
+// Forgot password, step 2: check the code and save the new password
+export async function resetPassword({ email, otp, password }) {
+  const merchant = await prisma.merchant.findUnique({ where: { email } });
+  if (!merchant) {
+    throw new AppError(400, 'No code found. Please ask for a new code.');
+  }
+  await useOtp(merchant.id, 'RESET_PASSWORD', otp); // throws if the code is wrong
+
+  await prisma.merchant.update({
+    where: { id: merchant.id },
+    data: {
+      passwordHash: await bcrypt.hash(password, 10),
+      isEmailVerified: true, // they got the code by email, so the email is theirs
+    },
+  });
 }
 
 // The token only stores the merchant id ("sub" = subject = who this token is for)

@@ -6,13 +6,8 @@ import { AppError } from '../../utils/AppError.js';
 import { TOKEN_DAYS } from '../../utils/authCookie.js';
 import { sendEmail } from '../../utils/email.js';
 import { toSlug } from '../../utils/slug.js';
+import { withoutPassword } from '../../utils/withoutPassword.js';
 import { createOtp, OTP_MINUTES, useOtp } from './otp.service.js';
-
-// Remove the password hash before a merchant is sent to the browser
-function withoutPassword(merchant) {
-  const { passwordHash: _passwordHash, ...rest } = merchant;
-  return rest;
-}
 
 // "raju-chaat" is taken? Try "raju-chaat-2", "raju-chaat-3"...
 async function createUniqueSlug(businessName) {

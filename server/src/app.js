@@ -5,6 +5,7 @@ import { env } from './config/env.js';
 import prisma from './config/prisma.js';
 import { errorHandler, notFound } from './middlewares/errorHandler.js';
 import authRoutes from './modules/auth/auth.routes.js';
+import merchantRoutes from './modules/merchant/merchant.routes.js';
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.get('/api/health', async (_req, res) => {
 });
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/merchant', merchantRoutes);
 
 // These two must stay last: unknown URLs, then errors
 app.use(notFound);

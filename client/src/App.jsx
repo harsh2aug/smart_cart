@@ -3,6 +3,7 @@ import AuthGate from './auth/AuthGate.jsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import VerifyEmailPage from './pages/VerifyEmailPage.jsx';
 
@@ -25,6 +26,7 @@ export default function App() {
       {/* Logged in and verified */}
       <Route element={<AuthGate allow="verified" />}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
 
       {/* Unknown URL -> home (AuthGate then picks the right page) */}

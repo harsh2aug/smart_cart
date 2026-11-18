@@ -14,9 +14,22 @@ const password = z
   .min(8, 'Password must be at least 8 characters')
   .max(72, 'Password must be at most 72 characters');
 
+// Also used by the profile form (merchant.validation.js), so both follow the same rules
+export const businessName = z
+  .string()
+  .trim()
+  .min(2, 'Business name is too short')
+  .max(100, 'Business name is too long');
+
+export const ownerName = z
+  .string()
+  .trim()
+  .min(2, 'Owner name is too short')
+  .max(100, 'Owner name is too long');
+
 export const registerSchema = z.object({
-  businessName: z.string().trim().min(2, 'Business name is too short').max(100),
-  ownerName: z.string().trim().min(2, 'Owner name is too short').max(100),
+  businessName,
+  ownerName,
   phone,
   email,
   password,

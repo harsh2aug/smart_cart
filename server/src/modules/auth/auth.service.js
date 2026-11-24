@@ -131,7 +131,18 @@ export async function sendPasswordResetCode(email) {
     return; // the controller sends the same reply either way
   }
 
-  const code = await createOtp(merchant.id, 'RESET_PASSWORD');
+  let code;
+  try {
+    code = await createOtp(merchant.id, 'RESET_PASSWORD');
+  } catch (error) {
+    // A code was sent less than a minute ago. Don't answer "please wait":
+    // only real accounts would get that answer, which tells an attacker the email exists.
+    if (error.statusCode === 429) {
+      return;
+    }
+    throw error;
+  }
+
   await sendEmail({
     to: merchant.email,
     subject: `${code} is your SmartCart password reset code`,

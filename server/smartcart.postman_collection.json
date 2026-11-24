@@ -1,0 +1,131 @@
+{
+  "info": {
+    "name": "SmartCart API",
+    "description": "Import into Postman: File > Import > choose this file.\n\nStart the server first (npm run dev in server/).\nLogin saves a cookie in Postman, so the requests after it are logged in automatically.\nIn development, OTP codes are printed in the server terminal.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:5000/api/v1" }],
+  "item": [
+    {
+      "name": "Health check",
+      "request": { "method": "GET", "url": "http://localhost:5000/api/health" }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"businessName\": \"Raju Chaat Corner\",\n  \"ownerName\": \"Raju Kumar\",\n  \"phone\": \"9876543210\",\n  \"email\": \"your-own-email@example.com\",\n  \"password\": \"secret123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"9876543210\",\n  \"password\": \"secret123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Me (who is logged in)",
+          "request": { "method": "GET", "url": "{{baseUrl}}/auth/me" }
+        },
+        {
+          "name": "Verify email (log in first)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/verify-email",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"123456\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Resend verification code (log in first)",
+          "request": { "method": "POST", "url": "{{baseUrl}}/auth/resend-verification" }
+        },
+        {
+          "name": "Forgot password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/forgot-password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"your-own-email@example.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Reset password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/reset-password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"your-own-email@example.com\",\n  \"otp\": \"123456\",\n  \"password\": \"newsecret123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": { "method": "POST", "url": "{{baseUrl}}/auth/logout" }
+        }
+      ]
+    },
+    {
+      "name": "Merchant (log in with a verified email first)",
+      "item": [
+        {
+          "name": "Get profile",
+          "request": { "method": "GET", "url": "{{baseUrl}}/merchant/profile" }
+        },
+        {
+          "name": "Update profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/merchant/profile",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Fresh pani puri and chaat since 2015\",\n  \"address\": \"Opp. City Mall, Ring Road\",\n  \"city\": \"Ahmedabad\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Open or close the cart",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/merchant/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isOpen\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
